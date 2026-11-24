@@ -55,26 +55,47 @@ function Escape-ForSendKeys([string]$inputStr) {
 
 # Reliably clears ALL existing data in the current input box (Ctrl+A -> Backspace -> Delete)
 function Clear-Field() {
+    [System.Windows.Forms.SendKeys]::Flush()
+    Start-Sleep -Milliseconds 15
     [System.Windows.Forms.SendKeys]::SendWait("^a")
     Start-Sleep -Milliseconds 25
     [System.Windows.Forms.SendKeys]::SendWait("{BACKSPACE}")
     Start-Sleep -Milliseconds 25
     [System.Windows.Forms.SendKeys]::SendWait("{DELETE}")
-    Start-Sleep -Milliseconds 25
+    Start-Sleep -Milliseconds 20
+    [System.Windows.Forms.SendKeys]::Flush()
 }
 
-# Reliably clears ALL existing data in the current input box and types new value
+# Reliably clears ALL existing data in the current input box and sets new value (via clipboard or SendKeys)
 function Clear-And-SetText([string]$val) {
-    # 1. Select all and delete completely
+    # 1. Release modifier keys & flush
+    [System.Windows.Forms.SendKeys]::Flush()
+    Start-Sleep -Milliseconds 15
+
+    # 2. Select all and delete completely
     Clear-Field
 
-    # 2. Type new value if present
+    # 3. Enter new value if present
     if (-not [string]::IsNullOrEmpty($val)) {
-        $escaped = Escape-ForSendKeys $val
-        [System.Windows.Forms.SendKeys]::SendWait($escaped)
-        Start-Sleep -Milliseconds 35
+        $pasted = $false
+        # Try instant & accurate clipboard paste first (bulletproof against ;, :, _, long tokens)
+        try {
+            [System.Windows.Forms.Clipboard]::SetText($val)
+            Start-Sleep -Milliseconds 25
+            [System.Windows.Forms.SendKeys]::SendWait("^v")
+            Start-Sleep -Milliseconds 35
+            $pasted = $true
+        } catch {}
+
+        # Fallback to SendKeys if clipboard is not accessible
+        if (-not $pasted) {
+            $escaped = Escape-ForSendKeys $val
+            [System.Windows.Forms.SendKeys]::SendWait($escaped)
+            Start-Sleep -Milliseconds 35
+        }
     }
 
+    [System.Windows.Forms.SendKeys]::Flush()
     if ($DelayMs -gt 0) {
         Start-Sleep -Milliseconds $DelayMs
     }
@@ -84,15 +105,18 @@ function Clear-And-SetText([string]$val) {
 function Select-ProxyTypeInDropdown([string]$proto) {
     $p = if ($proto) { $proto.ToUpper().Trim() } else { "SOCKS5" }
 
-    # 1. Open dropdown (Alt+Down opens Windows comboboxes, Enter / Space opens web selects)
-    [System.Windows.Forms.SendKeys]::SendWait("%{DOWN}")
-    Start-Sleep -Milliseconds 60
+    [System.Windows.Forms.SendKeys]::Flush()
+    Start-Sleep -Milliseconds 25
+
+    # 1. Open dropdown
     [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
-    Start-Sleep -Milliseconds 80
+    Start-Sleep -Milliseconds 70
+    [System.Windows.Forms.SendKeys]::SendWait("%{DOWN}")
+    Start-Sleep -Milliseconds 70
 
     # 2. Reset selection to the top item (HTTP)
     [System.Windows.Forms.SendKeys]::SendWait("{HOME}")
-    Start-Sleep -Milliseconds 40
+    Start-Sleep -Milliseconds 45
 
     # GeeLark select options order:
     # 1. HTTP
@@ -101,15 +125,15 @@ function Select-ProxyTypeInDropdown([string]$proto) {
     if ($p -like "*SOCKS5*" -or $p -eq "SOCKS" -or $p -like "*SOCKS*") {
         # SOCKS5 is 3rd item: 2 down from Home
         [System.Windows.Forms.SendKeys]::SendWait("{DOWN}")
-        Start-Sleep -Milliseconds 35
+        Start-Sleep -Milliseconds 40
         [System.Windows.Forms.SendKeys]::SendWait("{DOWN}")
-        Start-Sleep -Milliseconds 35
+        Start-Sleep -Milliseconds 40
         [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
     }
     elseif ($p -like "*HTTPS*") {
         # HTTPS is 2nd item: 1 down from Home
         [System.Windows.Forms.SendKeys]::SendWait("{DOWN}")
-        Start-Sleep -Milliseconds 35
+        Start-Sleep -Milliseconds 40
         [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
     }
     else {
@@ -117,22 +141,30 @@ function Select-ProxyTypeInDropdown([string]$proto) {
         [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
     }
 
-    Start-Sleep -Milliseconds 40
-    [System.Windows.Forms.SendKeys]::SendWait("{ESCAPE}")
-    Start-Sleep -Milliseconds 70
+    Start-Sleep -Milliseconds 50
+    [System.Windows.Forms.SendKeys]::Flush()
+    Start-Sleep -Milliseconds 30
 }
 
 function Send-TabKey() {
+    [System.Windows.Forms.SendKeys]::Flush()
+    Start-Sleep -Milliseconds 15
     [System.Windows.Forms.SendKeys]::SendWait("{TAB}")
-    Start-Sleep -Milliseconds 50
+    Start-Sleep -Milliseconds 55
+    [System.Windows.Forms.SendKeys]::Flush()
+    Start-Sleep -Milliseconds 15
     if ($DelayMs -gt 0) {
         Start-Sleep -Milliseconds $DelayMs
     }
 }
 
 function Send-ShiftTabKey() {
+    [System.Windows.Forms.SendKeys]::Flush()
+    Start-Sleep -Milliseconds 15
     [System.Windows.Forms.SendKeys]::SendWait("+{TAB}")
-    Start-Sleep -Milliseconds 50
+    Start-Sleep -Milliseconds 55
+    [System.Windows.Forms.SendKeys]::Flush()
+    Start-Sleep -Milliseconds 15
     if ($DelayMs -gt 0) {
         Start-Sleep -Milliseconds $DelayMs
     }
@@ -368,10 +400,89 @@ $b = $Browser.ToLower().Trim()
 $p = $Type.ToUpper().Trim()
 
 # ---------------------------------------------------------------------
-# ATTEMPT SMART UI AUTOMATION DETECTION FIRST
+# 1. GEELARK (DEDICATED PRECISION ENGINE - PROXY SETTINGS ONLY)
 # ---------------------------------------------------------------------
-# If 'smart' mode or browser preset is active, try smart field detection first
-if ($b -eq "smart" -or $b -like "*geelark*" -or $b -eq "gologin" -or $b -eq "adspower") {
+if ($b -eq "geelark" -or $b -like "*geelark*") {
+    [System.Windows.Forms.SendKeys]::Flush()
+    Start-Sleep -Milliseconds 30
+
+    if ($StartField -eq "host-only" -or $StartField -eq "host") {
+        # MODE A: User starts inside 'Host' box
+        # 1. Clear & fill Host
+        Clear-And-SetText $HostVal
+
+        # 2. Tab x 1 to Port
+        Send-TabKey
+        Clear-And-SetText $PortVal
+
+        # 3. Tab x 2 to Username (skips 'Check proxy' button)
+        Send-TabKey
+        Send-TabKey
+        Clear-And-SetText $UserVal
+
+        # 4. Tab x 1 to Password
+        Send-TabKey
+        Clear-And-SetText $PassVal
+
+        exit 0
+    }
+    elseif ($StartField -eq "host-with-protocol") {
+        # MODE B: User starts in 'Host', updates Type first via 2 Shift+Tabs, then fills all
+        Send-ShiftTabKey
+        Send-ShiftTabKey
+        Select-ProxyTypeInDropdown $Type
+
+        # Return to Host via 2 Tabs
+        Send-TabKey
+        Send-TabKey
+        Clear-And-SetText $HostVal
+
+        # Tab x 1 to Port
+        Send-TabKey
+        Clear-And-SetText $PortVal
+
+        # Tab x 2 to Username (skips 'Check proxy' button)
+        Send-TabKey
+        Send-TabKey
+        Clear-And-SetText $UserVal
+
+        # Tab x 1 to Password
+        Send-TabKey
+        Clear-And-SetText $PassVal
+
+        exit 0
+    }
+    else {
+        # MODE C (DEFAULT): Starts at 'Type' dropdown (or user clicked Type)
+        # 1. Select Type from dropdown (HTTP / HTTPS / SOCKS5)
+        Select-ProxyTypeInDropdown $Type
+
+        # 2. Tab x 2 to reach Host input box (skips 'IP query channel')
+        Send-TabKey
+        Send-TabKey
+        Clear-And-SetText $HostVal
+
+        # 3. Tab x 1 to reach Port input box
+        Send-TabKey
+        Clear-And-SetText $PortVal
+
+        # 4. Tab x 2 to reach Username input box (skips 'Check proxy' button)
+        Send-TabKey
+        Send-TabKey
+        Clear-And-SetText $UserVal
+
+        # 5. Tab x 1 to reach Password input box
+        Send-TabKey
+        Clear-And-SetText $PassVal
+
+        exit 0
+    }
+}
+
+# ---------------------------------------------------------------------
+# ATTEMPT SMART UI AUTOMATION DETECTION FIRST (FOR OTHER BROWSERS)
+# ---------------------------------------------------------------------
+if ($b -eq "smart" -or $b -eq "gologin" -or $b -eq "adspower") {
     $smartSuccess = Try-SmartUIADetectionAndFill
     if ($smartSuccess) {
         exit 0
@@ -387,73 +498,6 @@ if ($b -eq "dolphin" -or $b -like "*dolphin*" -or $b -eq "octo" -or $Mode -eq "s
         $full += "`:$UserVal`:$PassVal"
     }
     Clear-And-SetText $full
-}
-
-# ---------------------------------------------------------------------
-# FALLBACK 2. GEELARK - STAYS STRICTLY INSIDE PROXY SETTINGS
-# ---------------------------------------------------------------------
-elseif ($b -eq "geelark" -or $b -like "*geelark*") {
-    # GeeLark keyboard fallback: Starts in Host box (or navigates to Host)
-    # =================================================================
-    # STEP 1: CLEAN / REMOVE ALL FIELDS FIRST
-    # =================================================================
-    # Clean Host
-    Clear-Field
-
-    # Tab to Port and clean
-    Send-TabKey
-    Clear-Field
-
-    # Tab x 2 to Username (skips Check proxy button) and clean
-    Send-TabKey
-    Send-TabKey
-    Clear-Field
-
-    # Tab to Password and clean
-    Send-TabKey
-    Clear-Field
-
-    # =================================================================
-    # STEP 2: RETURN TO TYPE DROPDOWN (STRICTLY INSIDE PROXY SETTINGS)
-    # =================================================================
-    # From Password back to Host: exactly 4 Shift+Tabs
-    # (Password -> Username -> Check proxy -> Port -> Host)
-    Send-ShiftTabKey
-    Send-ShiftTabKey
-    Send-ShiftTabKey
-    Send-ShiftTabKey
-    Start-Sleep -Milliseconds 40
-
-    # From Host back to Type dropdown: 2 Shift+Tabs
-    # (Host -> IP query channel -> Type)
-    Send-ShiftTabKey
-    Send-ShiftTabKey
-    Start-Sleep -Milliseconds 40
-
-    # =================================================================
-    # STEP 3: FILL ONE BY ONE: TYPE -> HOST -> PORT -> USER -> PASS
-    # =================================================================
-    # 1. Select Type from dropdown
-    Select-ProxyTypeInDropdown $Type
-
-    # 2. Tab x 2 back to Host
-    Send-TabKey
-    Send-TabKey
-    Clear-And-SetText $HostVal
-
-    # 3. Tab to Port
-    Send-TabKey
-    Clear-And-SetText $PortVal
-
-    # 4. Tab x 2 to Username
-    Send-TabKey
-    Send-TabKey
-    Clear-And-SetText $UserVal
-
-    # 5. Tab to Password
-    Send-TabKey
-    Clear-And-SetText $PassVal
-    # Completed! Only fill marked fields. Do not click check proxy!
 }
 
 # ---------------------------------------------------------------------
