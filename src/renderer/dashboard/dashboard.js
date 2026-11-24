@@ -106,9 +106,10 @@ function updateBulkDeleteUI() {
 }
 
 function render(data) {
-  currentStore = data;
-  const proxies = currentStore.proxies || [];
-  const settings = currentStore.settings || {};
+  try {
+    currentStore = data;
+    const proxies = currentStore ? (currentStore.proxies || []) : [];
+    const settings = currentStore ? (currentStore.settings || {}) : {};
 
   // Clean up selected IDs that no longer exist
   const existingIds = new Set(proxies.map(p => p.id));
@@ -142,36 +143,42 @@ function render(data) {
 
   // Settings tab values
   if (cfgTargetBrowser) {
-    cfgTargetBrowser.value = settings.targetBrowser || 'gologin';
+    cfgTargetBrowser.value = settings.targetBrowser || 'smart';
   }
-  cfgGlobalHotkey.value = settings.globalHotkey || 'Alt+F';
-  cfgFillMode.value = settings.fillMode || 'tab-sequence';
-  cfgDelayMs.value = settings.fillDelayMs || 45;
+  if (cfgGlobalHotkey) cfgGlobalHotkey.value = settings.globalHotkey || 'Alt+F';
+  if (cfgFillMode) cfgFillMode.value = settings.fillMode || 'tab-sequence';
+  if (cfgDelayMs) cfgDelayMs.value = settings.fillDelayMs || 45;
   if (cfgStartField) {
-    cfgStartField.value = settings.startField || 'host-with-protocol';
+    cfgStartField.value = settings.startField || 'host-only';
   }
-  cfgAutoAdvance.checked = settings.autoAdvanceOnFill !== false;
+  if (cfgAutoAdvance) cfgAutoAdvance.checked = settings.autoAdvanceOnFill !== false;
 
   // Filter and search
-  const query = (searchInput.value || '').toLowerCase().trim();
-  const selectedType = typeFilter.value;
-  const selectedStatus = statusFilter.value;
+  const query = (searchInput && searchInput.value ? searchInput.value : '').toLowerCase().trim();
+  const selectedType = typeFilter ? (typeFilter.value || 'ALL') : 'ALL';
+  const selectedStatus = statusFilter ? (statusFilter.value || 'ALL') : 'ALL';
 
   const filtered = proxies.filter((p) => {
-    if (selectedType !== 'ALL' && (p.type || 'HTTP').toUpperCase() !== selectedType) {
-      return false;
+    if (selectedType && selectedType.toUpperCase() !== 'ALL') {
+      const pType = (p.type || 'HTTP').toUpperCase();
+      if (selectedType.toUpperCase() === 'HTTP') {
+        if (pType !== 'HTTP' && pType !== 'HTTPS') return false;
+      } else if (pType !== selectedType.toUpperCase()) {
+        return false;
+      }
     }
     const isDone = checkIsDone(p);
     if (selectedStatus === 'active' && isDone) return false;
     if (selectedStatus === 'done' && !isDone) return false;
 
     if (query) {
+      const tags = Array.isArray(p.tags) ? p.tags : (typeof p.tags === 'string' ? [p.tags] : []);
       const match = (
         (p.name || '').toLowerCase().includes(query) ||
         (p.host || '').toLowerCase().includes(query) ||
         (p.port || '').toString().includes(query) ||
         (p.username || '').toLowerCase().includes(query) ||
-        (p.tags || []).some(t => t.toLowerCase().includes(query))
+        tags.some(t => String(t).toLowerCase().includes(query))
       );
       if (!match) return false;
     }
@@ -301,6 +308,9 @@ function render(data) {
       proxyTableBody.appendChild(tr);
     });
   }
+  } catch (err) {
+    console.error('Error in render():', err);
+  }
 }
 
 function renderPaginationControls(totalPages) {
@@ -382,22 +392,30 @@ selectAllCheckbox.addEventListener('change', (e) => {
   const proxies = currentStore ? currentStore.proxies || [] : [];
   
   // Filter currently visible
-  const query = (searchInput.value || '').toLowerCase().trim();
-  const selectedType = typeFilter.value;
-  const selectedStatus = statusFilter.value;
+  const query = (searchInput && searchInput.value ? searchInput.value : '').toLowerCase().trim();
+  const selectedType = typeFilter ? (typeFilter.value || 'ALL') : 'ALL';
+  const selectedStatus = statusFilter ? (statusFilter.value || 'ALL') : 'ALL';
 
   const filtered = proxies.filter((p) => {
-    if (selectedType !== 'ALL' && (p.type || 'HTTP').toUpperCase() !== selectedType) return false;
+    if (selectedType && selectedType.toUpperCase() !== 'ALL') {
+      const pType = (p.type || 'HTTP').toUpperCase();
+      if (selectedType.toUpperCase() === 'HTTP') {
+        if (pType !== 'HTTP' && pType !== 'HTTPS') return false;
+      } else if (pType !== selectedType.toUpperCase()) {
+        return false;
+      }
+    }
     const isDone = (p.status === 'done' || p.status === 'used' || p.status === 'inactive');
     if (selectedStatus === 'active' && isDone) return false;
     if (selectedStatus === 'done' && !isDone) return false;
     if (query) {
+      const tags = Array.isArray(p.tags) ? p.tags : (typeof p.tags === 'string' ? [p.tags] : []);
       const match = (
         (p.name || '').toLowerCase().includes(query) ||
         (p.host || '').toLowerCase().includes(query) ||
         (p.port || '').toString().includes(query) ||
         (p.username || '').toLowerCase().includes(query) ||
-        (p.tags || []).some(t => t.toLowerCase().includes(query))
+        tags.some(t => String(t).toLowerCase().includes(query))
       );
       if (!match) return false;
     }
