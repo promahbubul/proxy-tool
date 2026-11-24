@@ -84,14 +84,14 @@ btnNext.addEventListener('click', async () => {
 browserSelect.addEventListener('change', async (e) => {
   const chosen = e.target.value;
   await window.api.setTargetBrowser(chosen);
-  const browserNames = {
-    gologin: 'GoLogin',
-    geelark: 'GeeLark',
-    adspower: 'AdsPower',
-    dolphin: 'Dolphin{anty}',
-    universal: 'Universal (Direct IP)'
+  const browserTips = {
+    geelark: 'GeeLark: Click inside "Host" box, then Fill',
+    gologin: 'GoLogin: Click "Proxy Type" or "Host", then Fill',
+    adspower: 'AdsPower: Click inside "Host" box, then Fill',
+    dolphin: 'Dolphin: Click inside "New proxy" box, then Fill',
+    universal: 'Universal: Click inside "Host / IP" box, then Fill'
   };
-  showToast(`Mode: ${browserNames[chosen] || chosen}`, 'info');
+  showToast(browserTips[chosen] || `Mode: ${chosen}`, 'info');
 });
 
 btnFill.addEventListener('click', async () => {

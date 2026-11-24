@@ -287,7 +287,7 @@ class DataStore {
         let host = colonParts[0];
         let port = colonParts[1];
         let username = colonParts[2] || '';
-        let password = colonParts[3] || '';
+        let password = colonParts.length > 3 ? colonParts.slice(3).join(':') : '';
         
         // Sometimes format is username:password@host:port
         if (line.includes('@')) {
