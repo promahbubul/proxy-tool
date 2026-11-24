@@ -12,7 +12,7 @@ const scriptPath = path.join(__dirname, 'scripts', 'fill.ps1');
  * @param {string} options.port
  * @param {string} options.username
  * @param {string} options.password
- * @param {string} options.browser - 'gologin' | 'geelark' | 'adspower' | 'dolphin' | 'universal'
+ * @param {string} options.browser - 'gologin' | 'geelark' | 'geelark-host' | 'adspower' | 'dolphin' | 'universal'
  * @param {string} options.startField - 'dropdown' | 'host-only' | 'paste-url'
  * @param {string} options.mode - 'tab-sequence' | 'single-line' | 'cred-only'
  * @param {boolean} options.switchWindow - whether to trigger Alt+Tab before typing
@@ -26,34 +26,40 @@ function executeFill(options = {}) {
       port = '',
       username = '',
       password = '',
-      browser = 'gologin',
+      browser = 'geelark',
       startField = 'dropdown',
       mode = 'tab-sequence',
       switchWindow = false,
       delayMs = 45
     } = options;
 
+    const payloadObj = {
+      type,
+      host,
+      port,
+      username,
+      password,
+      browser,
+      startField,
+      mode,
+      delayMs,
+      switchWindow
+    };
+
+    const env = {
+      ...process.env,
+      SMARTFILL_PAYLOAD: JSON.stringify(payloadObj)
+    };
+
     const args = [
       '-NoProfile',
       '-ExecutionPolicy', 'Bypass',
-      '-File', scriptPath,
-      '-Type', type,
-      '-HostVal', host,
-      '-PortVal', port,
-      '-UserVal', username,
-      '-PassVal', password,
-      '-Browser', browser,
-      '-StartField', startField,
-      '-Mode', mode,
-      '-DelayMs', delayMs.toString()
+      '-File', scriptPath
     ];
-
-    if (switchWindow) {
-      args.push('-SwitchToPreviousWindow');
-    }
 
     const ps = spawn('powershell.exe', args, {
       windowsHide: true,
+      env,
       stdio: ['ignore', 'pipe', 'pipe']
     });
 
