@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('api', {
   prevProxy: () => ipcRenderer.invoke('prev-proxy'),
   triggerFill: (fromOverlay = true) => ipcRenderer.invoke('trigger-fill', { fromOverlay }),
   copyCurrent: () => ipcRenderer.invoke('copy-current'),
+  setTargetBrowser: (browser) => ipcRenderer.invoke('set-target-browser', browser),
   openDashboard: () => ipcRenderer.invoke('open-dashboard'),
   closeOverlay: () => ipcRenderer.invoke('close-overlay'),
   

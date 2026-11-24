@@ -49,13 +49,14 @@ npm start
 
 ---
 
-## 🎯 GoLogin ও GeeLark-এ ব্যবহারের নিয়ম
+## 🎯 বিভিন্ন ব্রাউজারে ব্যবহারের নিয়ম (Target Browser Presets)
 
-1. ড্যাশবোর্ডের **"Import Proxies / CSV"** বাটনে ক্লিক করে প্রক্সি লিস্ট ইমপোর্ট করুন (বা ড্র্যাগ করে ছেড়ে দিন)।
-2. GoLogin বা GeeLark ওপেন করুন এবং নতুন প্রোফাইল তৈরি করতে গিয়ে **Proxy** সেকশনে যান।
-3. **Proxy IP / Host** ফিল্ডে একবার ক্লিক করে কার্সার রাখুন।
-4. কিবোর্ডে চাপুন: **`Alt + F`**
-5. সাথে সাথে Host, Port, Username এবং Password সংশ্লিষ্ট ফিল্ডগুলোতে পেস্ট হয়ে যাবে এবং স্বয়ংক্রিয়ভাবে পরবর্তী প্রক্সিটি রেডি হয়ে যাবে!
+ভাসমান টুলবারে একটি **Browser Selector** দেওয়া আছে:
+- **GoLogin:** GoLogin-এর Proxy Type ড্রপডাউনে কার্সার রেখে `Alt+F` চাপলে ড্রপডাউন সিলেক্ট করে IP, Port, Username, Password ফিল করে।
+- **GeeLark:** GeeLark-এর Proxy Type ড্রপডাউনে কার্সার রেখে `Alt+F` চাপলে GeeLark-এর প্রোটোকল ড্রপডাউন ও ফিল্ড নিখুঁতভাবে ফিল হয়।
+- **AdsPower:** AdsPower-এর Host ফিল্ডে কার্সার রেখে `Alt+F` চাপলে Host, Port, User, Password অটো-ফিল হয়।
+- **Dolphin{anty}:** Dolphin-এর "New proxy" বক্সে কার্সার রেখে `Alt+F` চাপলে এক লাইনে পুরো প্রক্সি পেস্ট হয়ে সম্পূর্ণ কনফিগার হয়ে যায়।
+- **Universal:** যেকোনো সফটওয়্যার বা ব্রাউজারের IP/Host বক্সে কার্সার রেখে `Alt+F` চাপলে সরাসরি Host -> Tab -> Port -> Tab -> User -> Tab -> Pass ফিল করে।
 
 ---
 

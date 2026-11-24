@@ -78,6 +78,7 @@ class DataStore {
         nextHotkey: 'Alt+N',
         autoAdvanceOnFill: true,
         fillDelayMs: 45,
+        targetBrowser: 'gologin', // 'gologin' | 'geelark' | 'adspower' | 'dolphin' | 'universal'
         fillMode: 'tab-sequence', // 'tab-sequence' | 'single-line'
         startField: 'dropdown', // 'dropdown' (cursor in dropdown) | 'host-only' (cursor in IP box)
         activeProxyIndex: 0

@@ -4,9 +4,10 @@ param(
     [string]$PortVal = "",
     [string]$UserVal = "",
     [string]$PassVal = "",
-    [string]$StartField = "dropdown", # 'dropdown' (cursor in dropdown), 'host-only' (cursor in IP box), 'paste-url'
-    [string]$Mode = "tab-sequence", # 'tab-sequence', 'single-line', 'cred-only'
-    [int]$DelayMs = 50,
+    [string]$Browser = "gologin", # 'gologin', 'geelark', 'adspower', 'dolphin', 'universal'
+    [string]$StartField = "dropdown",
+    [string]$Mode = "tab-sequence",
+    [int]$DelayMs = 45,
     [switch]$SwitchToPreviousWindow
 )
 
@@ -49,19 +50,38 @@ function Send-TabKey() {
     }
 }
 
-# Selects protocol in dropdown, commits with ENTER, closes with ESCAPE, and moves to IP field
-function Select-And-CommitDropdown([string]$protoType) {
-    $p = $protoType.ToUpper().Trim()
-    
-    # 1. Reset to top option (HTTP Proxy) with discrete key events
+# Optional: switch focus back if triggered from overlay click
+if ($SwitchToPreviousWindow) {
+    [System.Windows.Forms.SendKeys]::SendWait("%{TAB}")
+    Start-Sleep -Milliseconds 150
+}
+
+$b = $Browser.ToLower().Trim()
+$p = $Type.ToUpper().Trim()
+
+# ---------------------------------------------------------------------
+# 1. DOLPHIN{ANTY} / OCTO BROWSER (Single-Line Quick Import Box)
+# ---------------------------------------------------------------------
+if ($b -eq "dolphin" -or $b -like "*dolphin*" -or $b -eq "octo" -or $Mode -eq "single-line" -or $StartField -eq "paste-url") {
+    $full = "$HostVal`:$PortVal"
+    if ($UserVal) {
+        $full += "`:$UserVal`:$PassVal"
+    }
+    Clear-And-SetText $full
+}
+
+# ---------------------------------------------------------------------
+# 2. GOLOGIN (Dropdown -> SOCKS5 / HTTP -> ESC -> TAB -> Host -> Port -> User -> Pass)
+# ---------------------------------------------------------------------
+elseif ($b -eq "gologin") {
+    # 1. Reset GoLogin dropdown to top option (HTTP Proxy)
     for ($i = 0; $i -lt 5; $i++) {
         [System.Windows.Forms.SendKeys]::SendWait("{UP}")
         Start-Sleep -Milliseconds 35
     }
 
-    # 2. Navigate to target protocol in GoLogin / GeeLark
+    # 2. Select protocol: HTTP (0) -> Socks 4 (1) -> Socks 5 (2)
     if ($p -like "*SOCKS5*" -or $p -eq "SOCKS" -or $p -like "*SOCKS*") {
-        # GoLogin: HTTP (0) -> Socks 4 (1) -> Socks 5 (2)
         [System.Windows.Forms.SendKeys]::SendWait("{DOWN}")
         Start-Sleep -Milliseconds 60
         [System.Windows.Forms.SendKeys]::SendWait("{DOWN}")
@@ -73,61 +93,103 @@ function Select-And-CommitDropdown([string]$protoType) {
         Start-Sleep -Milliseconds 60
         [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
     }
-    elseif ($p -like "*SHADOW*") {
-        for ($i = 0; $i -lt 3; $i++) {
-            [System.Windows.Forms.SendKeys]::SendWait("{DOWN}")
-            Start-Sleep -Milliseconds 60
-        }
+    else {
+        # HTTP Proxy (Option 0)
+        [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
+    }
+
+    Start-Sleep -Milliseconds 80
+    # Close GoLogin popover so keyboard focus advances to IP Address
+    [System.Windows.Forms.SendKeys]::SendWait("{ESCAPE}")
+    Start-Sleep -Milliseconds 220
+
+    # Advance to IP Address box
+    Send-TabKey
+    Clear-And-SetText $HostVal
+
+    # Advance to Port box
+    Send-TabKey
+    Clear-And-SetText $PortVal
+
+    # Advance to Login and Password boxes
+    if ($UserVal -or $PassVal) {
+        Send-TabKey
+        Clear-And-SetText $UserVal
+        Send-TabKey
+        Clear-And-SetText $PassVal
+    }
+}
+
+# ---------------------------------------------------------------------
+# 3. GEELARK (Dropdown -> HTTP / HTTPS / SOCKS5 -> ESC -> TAB -> Host -> Port -> User -> Pass)
+# ---------------------------------------------------------------------
+elseif ($b -eq "geelark") {
+    # GeeLark dropdown options: HTTP (0), HTTPS (1), SOCKS5 (2)
+    for ($i = 0; $i -lt 5; $i++) {
+        [System.Windows.Forms.SendKeys]::SendWait("{UP}")
+        Start-Sleep -Milliseconds 35
+    }
+
+    if ($p -like "*SOCKS5*" -or $p -eq "SOCKS" -or $p -like "*SOCKS*") {
+        [System.Windows.Forms.SendKeys]::SendWait("{DOWN}")
+        Start-Sleep -Milliseconds 60
+        [System.Windows.Forms.SendKeys]::SendWait("{DOWN}")
+        Start-Sleep -Milliseconds 60
+        [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
+    }
+    elseif ($p -like "*HTTPS*") {
+        [System.Windows.Forms.SendKeys]::SendWait("{DOWN}")
+        Start-Sleep -Milliseconds 60
         [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
     }
     else {
-        # HTTP / HTTPS Proxy (Option 0)
+        # HTTP
         [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
     }
-    
+
     Start-Sleep -Milliseconds 80
-
-    # 3. CRITICAL: Ensure popup popover is closed so focus is NEVER trapped inside the dropdown!
     [System.Windows.Forms.SendKeys]::SendWait("{ESCAPE}")
+    Start-Sleep -Milliseconds 180
 
-    # 4. Wait for GoLogin to re-render DOM fields (IP, Port, Login, Password)
-    Start-Sleep -Milliseconds 220
-}
-
-# Optional: switch focus back if triggered from overlay click
-if ($SwitchToPreviousWindow) {
-    [System.Windows.Forms.SendKeys]::SendWait("%{TAB}")
-    Start-Sleep -Milliseconds 150
-}
-
-if ($Mode -eq "single-line" -or $StartField -eq "paste-url") {
-    $full = "$HostVal`:$PortVal"
-    if ($UserVal) {
-        $full += "`:$UserVal`:$PassVal"
-    }
-    Clear-And-SetText $full
-}
-elseif ($Mode -eq "cred-only") {
-    if ($UserVal) { Clear-And-SetText $UserVal }
+    # Advance to Server IP / Host box
     Send-TabKey
-    if ($PassVal) { Clear-And-SetText $PassVal }
-}
-else {
-    # If starting from Proxy Type dropdown (recommended when changing SOCKS5 vs HTTP)
-    if ($StartField -eq "dropdown") {
-        Select-And-CommitDropdown $Type
-        # Tab moves from closed dropdown into IP Address box
-        Send-TabKey
-    }
-
-    # Now in IP Address / Host box
     Clear-And-SetText $HostVal
-    Send-TabKey
 
-    # Port box
+    # Advance to Port box
+    Send-TabKey
     Clear-And-SetText $PortVal
 
-    # Login and Password boxes
+    # Advance to User & Password
+    if ($UserVal -or $PassVal) {
+        Send-TabKey
+        Clear-And-SetText $UserVal
+        Send-TabKey
+        Clear-And-SetText $PassVal
+    }
+}
+
+# ---------------------------------------------------------------------
+# 4. ADSPOWER (Safe Host Field -> Tab -> Port -> Tab -> User -> Tab -> Pass)
+# ---------------------------------------------------------------------
+elseif ($b -eq "adspower") {
+    Clear-And-SetText $HostVal
+    Send-TabKey
+    Clear-And-SetText $PortVal
+    if ($UserVal -or $PassVal) {
+        Send-TabKey
+        Clear-And-SetText $UserVal
+        Send-TabKey
+        Clear-And-SetText $PassVal
+    }
+}
+
+# ---------------------------------------------------------------------
+# 5. UNIVERSAL / ANY BROWSER (Direct IP Box: Host -> Tab -> Port -> Tab -> User -> Tab -> Pass)
+# ---------------------------------------------------------------------
+else {
+    Clear-And-SetText $HostVal
+    Send-TabKey
+    Clear-And-SetText $PortVal
     if ($UserVal -or $PassVal) {
         Send-TabKey
         Clear-And-SetText $UserVal

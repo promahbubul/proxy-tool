@@ -7,10 +7,13 @@ const scriptPath = path.join(__dirname, 'scripts', 'fill.ps1');
 /**
  * Executes the fill automation script
  * @param {Object} options
+ * @param {string} options.type
  * @param {string} options.host
  * @param {string} options.port
  * @param {string} options.username
  * @param {string} options.password
+ * @param {string} options.browser - 'gologin' | 'geelark' | 'adspower' | 'dolphin' | 'universal'
+ * @param {string} options.startField - 'dropdown' | 'host-only' | 'paste-url'
  * @param {string} options.mode - 'tab-sequence' | 'single-line' | 'cred-only'
  * @param {boolean} options.switchWindow - whether to trigger Alt+Tab before typing
  * @param {number} options.delayMs
@@ -23,7 +26,8 @@ function executeFill(options = {}) {
       port = '',
       username = '',
       password = '',
-      startField = 'host-with-protocol',
+      browser = 'gologin',
+      startField = 'dropdown',
       mode = 'tab-sequence',
       switchWindow = false,
       delayMs = 45
@@ -38,6 +42,7 @@ function executeFill(options = {}) {
       '-PortVal', port,
       '-UserVal', username,
       '-PassVal', password,
+      '-Browser', browser,
       '-StartField', startField,
       '-Mode', mode,
       '-DelayMs', delayMs.toString()

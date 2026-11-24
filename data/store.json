@@ -155,6 +155,7 @@
     "nextHotkey": "Alt+N",
     "autoAdvanceOnFill": true,
     "fillDelayMs": 45,
+    "targetBrowser": "gologin",
     "fillMode": "tab-sequence",
     "startField": "dropdown",
     "activeProxyIndex": 0

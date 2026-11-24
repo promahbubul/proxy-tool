@@ -59,6 +59,7 @@ const btnCancelAdd = document.getElementById('btnCancelAdd');
 const btnSubmitAdd = document.getElementById('btnSubmitAdd');
 
 // Settings Form
+const cfgTargetBrowser = document.getElementById('cfgTargetBrowser');
 const cfgGlobalHotkey = document.getElementById('cfgGlobalHotkey');
 const cfgFillMode = document.getElementById('cfgFillMode');
 const cfgDelayMs = document.getElementById('cfgDelayMs');
@@ -140,6 +141,9 @@ function render(data) {
   lblGlobalHotkey.textContent = settings.globalHotkey || 'Alt + F';
 
   // Settings tab values
+  if (cfgTargetBrowser) {
+    cfgTargetBrowser.value = settings.targetBrowser || 'gologin';
+  }
   cfgGlobalHotkey.value = settings.globalHotkey || 'Alt+F';
   cfgFillMode.value = settings.fillMode || 'tab-sequence';
   cfgDelayMs.value = settings.fillDelayMs || 45;
@@ -673,13 +677,15 @@ btnSubmitAdd.addEventListener('click', async () => {
 
 // Save Settings
 btnSaveSettings.addEventListener('click', async () => {
+  const targetBrowser = cfgTargetBrowser ? cfgTargetBrowser.value : 'gologin';
   const hotkey = cfgGlobalHotkey.value.trim() || 'Alt+F';
-  const fillMode = cfgFillMode.value;
+  const fillMode = cfgFillMode ? cfgFillMode.value : 'tab-sequence';
   const delay = parseInt(cfgDelayMs.value, 10) || 45;
   const startField = cfgStartField ? cfgStartField.value : 'host-with-protocol';
   const autoAdvance = cfgAutoAdvance.checked;
 
   await window.api.updateSettings({
+    targetBrowser,
     globalHotkey: hotkey,
     fillMode,
     fillDelayMs: delay,

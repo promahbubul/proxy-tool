@@ -42,7 +42,7 @@ function createOverlayWindow() {
   }
 
   overlayWindow = new BrowserWindow({
-    width: 510,
+    width: 530,
     height: 74,
     frame: false,
     transparent: true,
@@ -180,7 +180,8 @@ async function triggerActiveFill(fromOverlayClick = false) {
   }
 
   const settings = store.getSettings();
-  syncWindows('notify', { message: `Filling: ${current.host}:${current.port}...`, type: 'info' });
+  const targetBrowser = settings.targetBrowser || 'gologin';
+  syncWindows('notify', { message: `Filling [${targetBrowser.toUpperCase()}]: ${current.host}:${current.port}...`, type: 'info' });
 
   // Execute fill
   const res = await autofill.executeFill({
@@ -189,10 +190,11 @@ async function triggerActiveFill(fromOverlayClick = false) {
     port: current.port,
     username: current.username,
     password: current.password,
+    browser: targetBrowser,
     startField: settings.startField || 'dropdown',
     mode: settings.fillMode || 'tab-sequence',
     switchWindow: fromOverlayClick, // If clicked from overlay, Alt+Tab back to target
-    delayMs: settings.fillDelayMs || 50
+    delayMs: settings.fillDelayMs || 45
   });
 
   if (res.success) {
@@ -446,6 +448,12 @@ ipcMain.handle('copy-current', () => {
     return text;
   }
   return null;
+});
+
+ipcMain.handle('set-target-browser', (event, browser) => {
+  store.updateSettings({ targetBrowser: browser });
+  syncWindows('store-updated', store.getAll());
+  return browser;
 });
 
 ipcMain.handle('open-dashboard', () => {

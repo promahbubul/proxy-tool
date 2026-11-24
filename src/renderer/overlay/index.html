@@ -16,13 +16,13 @@
       </svg>
     </div>
 
-    <!-- Active Proxy Info Display -->
+    <!-- Active Proxy Info Display (Clickable to copy) -->
     <div class="proxy-info" id="proxyInfo">
       <div class="badge-row">
-        <span class="type-badge" id="proxyType">HTTP</span>
+        <span class="type-badge" id="proxyType">SOCKS5</span>
         <span class="index-badge" id="proxyIndex">0 / 0</span>
       </div>
-      <div class="host-port" id="proxyHost" title="Click to copy">No proxy loaded</div>
+      <div class="host-port" id="proxyHost" title="Click to copy proxy to clipboard">No proxy loaded</div>
     </div>
 
     <!-- Actions Bar -->
@@ -41,28 +41,21 @@
         </svg>
       </button>
 
+      <!-- Target Browser Selector Dropdown -->
+      <select class="browser-select" id="browserSelect" title="Target Anti-Detect Browser (Changes fill sequence)">
+        <option value="gologin">GoLogin</option>
+        <option value="geelark">GeeLark</option>
+        <option value="adspower">AdsPower</option>
+        <option value="dolphin">Dolphin</option>
+        <option value="universal">Universal</option>
+      </select>
+
       <!-- Primary FILL Button -->
-      <button class="fill-btn" id="btnFill" title="Auto-Fill into Target Field (Alt+F)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+      <button class="fill-btn" id="btnFill" title="Auto-Fill into Selected Browser (Alt+F)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
           <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
         </svg>
         <span>Fill</span>
-      </button>
-
-      <!-- Done / Inactive Toggle Button -->
-      <button class="done-btn" id="btnDone" title="Toggle Done / Inactive (Alt+D)">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
-        <span id="lblDoneText">Done</span>
-      </button>
-
-      <!-- Copy Button -->
-      <button class="icon-btn" id="btnCopy" title="Copy to Clipboard (Alt+C)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-        </svg>
       </button>
 
       <!-- Dashboard Button -->

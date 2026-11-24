@@ -247,19 +247,21 @@
             
             <div class="form-row">
               <div class="form-group">
-                <label>Auto-Fill Global Shortcut</label>
-                <input type="text" id="cfgGlobalHotkey" value="Alt+F" placeholder="e.g. Alt+F, Ctrl+Shift+V">
-                <small>Works in GoLogin, GeeLark, etc. without needing to switch window.</small>
+                <label>Target Anti-Detect Browser</label>
+                <select id="cfgTargetBrowser">
+                  <option value="gologin">GoLogin (Dropdown -> Tab Sequence)</option>
+                  <option value="geelark">GeeLark (Dropdown -> Tab Sequence)</option>
+                  <option value="adspower">AdsPower (Host -> Tab Sequence)</option>
+                  <option value="dolphin">Dolphin{anty} (Single-line Quick Paste)</option>
+                  <option value="universal">Universal / Any Browser (Direct IP Box)</option>
+                </select>
+                <small>Controls the automated key-sequence executed when clicking Fill or pressing Alt+F.</small>
               </div>
 
               <div class="form-group">
-                <label>Fill Mode</label>
-                <select id="cfgFillMode">
-                  <option value="tab-sequence">Tab Sequence (Host -> Tab -> Port -> Tab -> User -> Tab -> Pass)</option>
-                  <option value="single-line">Single-Line Paste (Host:Port:User:Pass)</option>
-                  <option value="cred-only">Credentials Only (Username -> Tab -> Password)</option>
-                </select>
-                <small>Select the format preferred by your target browser software.</small>
+                <label>Auto-Fill Global Shortcut</label>
+                <input type="text" id="cfgGlobalHotkey" value="Alt+F" placeholder="e.g. Alt+F, Ctrl+Shift+V">
+                <small>Works in GoLogin, GeeLark, etc. without needing to switch window.</small>
               </div>
             </div>
 
