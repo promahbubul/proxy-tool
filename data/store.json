@@ -1,0 +1,162 @@
+{
+  "proxies": [
+    {
+      "id": "demo-1",
+      "name": "US Residential 01",
+      "type": "SOCKS5",
+      "host": "198.51.100.12",
+      "port": "8080",
+      "username": "user_alpha",
+      "password": "pass_secret_123",
+      "tags": [
+        "USA",
+        "Chrome"
+      ],
+      "status": "active",
+      "usedCount": 0,
+      "createdAt": "2026-11-23T20:51:58.846Z",
+      "lastUsedAt": "2026-11-23T22:13:59.968Z"
+    },
+    {
+      "id": "demo-2",
+      "name": "UK Mobile 02",
+      "type": "SOCKS5",
+      "host": "203.0.113.45",
+      "port": "1080",
+      "username": "user_bravo",
+      "password": "pass_secret_456",
+      "tags": [
+        "UK",
+        "GeeLark"
+      ],
+      "status": "ready",
+      "usedCount": 0,
+      "createdAt": "2026-11-23T20:51:58.848Z"
+    },
+    {
+      "id": "prx-1795467118849-hppe",
+      "name": "Proxy 3",
+      "type": "SOCKS5",
+      "host": "198.51.100.10",
+      "port": "8080",
+      "username": "alpha_user",
+      "password": "pass123",
+      "tags": [
+        "Colon-Format"
+      ],
+      "status": "ready",
+      "usedCount": 0,
+      "createdAt": "2026-11-23T20:51:58.849Z"
+    },
+    {
+      "id": "prx-1795467118850-sn0c",
+      "name": "Proxy 4",
+      "type": "SOCKS5",
+      "host": "198.51.100.11",
+      "port": "8080",
+      "username": "bravo_user",
+      "password": "pass456",
+      "tags": [
+        "Colon-Format"
+      ],
+      "status": "ready",
+      "usedCount": 0,
+      "createdAt": "2026-11-23T20:51:58.850Z"
+    },
+    {
+      "id": "prx-1795467118852-qwf3",
+      "name": "Proxy 5",
+      "type": "SOCKS5",
+      "host": "198.51.100.12",
+      "port": "8080",
+      "username": "charlie_user",
+      "password": "pass789",
+      "tags": [
+        "Colon-Format"
+      ],
+      "status": "ready",
+      "usedCount": 0,
+      "createdAt": "2026-11-23T20:51:58.852Z"
+    },
+    {
+      "id": "prx-1795467118855-n2wp",
+      "name": "Proxy 6",
+      "type": "SOCKS5",
+      "host": "203.0.113.25",
+      "port": "1080",
+      "username": "delta_user",
+      "password": "pass999",
+      "tags": [
+        "Colon-Format"
+      ],
+      "status": "ready",
+      "usedCount": 0,
+      "createdAt": "2026-11-23T20:51:58.855Z"
+    },
+    {
+      "id": "prx-1795467118856-rryc",
+      "name": "Proxy 7",
+      "type": "SOCKS5",
+      "host": "203.0.113.26",
+      "port": "1080",
+      "username": "echo_user",
+      "password": "pass000",
+      "tags": [
+        "Colon-Format"
+      ],
+      "status": "ready",
+      "usedCount": 0,
+      "createdAt": "2026-11-23T20:51:58.856Z"
+    },
+    {
+      "id": "prx-1795467118858-rqhu",
+      "name": "Proxy 8",
+      "type": "SOCKS5",
+      "host": "142.250.190.46",
+      "port": "8080",
+      "username": "premium_user",
+      "password": "supersecret",
+      "tags": [
+        "Imported-URL"
+      ],
+      "status": "ready",
+      "usedCount": 0,
+      "createdAt": "2026-11-23T20:51:58.858Z"
+    },
+    {
+      "id": "prx-1795467118859-lnzu",
+      "name": "Proxy 9",
+      "type": "SOCKS5",
+      "host": "172.217.16.206",
+      "port": "1080",
+      "username": "residential_user",
+      "password": "mypassword",
+      "tags": [
+        "Imported-URL"
+      ],
+      "status": "ready",
+      "usedCount": 0,
+      "createdAt": "2026-11-23T20:51:58.859Z"
+    }
+  ],
+  "credentials": [
+    {
+      "id": "cred-1",
+      "name": "Gmail Account 1",
+      "username": "john.doe.workspace@gmail.com",
+      "password": "superpassword99#",
+      "secret2fa": "JBSWY3DPEHPK3PXP",
+      "notes": "GoLogin Profile 1"
+    }
+  ],
+  "settings": {
+    "globalHotkey": "Alt+F",
+    "copyHotkey": "Alt+C",
+    "nextHotkey": "Alt+N",
+    "autoAdvanceOnFill": true,
+    "fillDelayMs": 45,
+    "fillMode": "tab-sequence",
+    "startField": "dropdown",
+    "activeProxyIndex": 0
+  }
+}

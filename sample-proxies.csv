@@ -1,0 +1,7 @@
+198.51.100.10:8080:alpha_user:pass123
+198.51.100.11:8080:bravo_user:pass456
+198.51.100.12:8080:charlie_user:pass789
+203.0.113.25:1080:delta_user:pass999
+203.0.113.26:1080:echo_user:pass000
+http://premium_user:supersecret@142.250.190.46:8080
+socks5://residential_user:mypassword@172.217.16.206:1080

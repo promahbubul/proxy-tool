@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartFill Pro - Proxy Hub & Automation</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h2>SmartFill</h2>
+          <span class="version">Pro v1.0</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-item active" data-tab="proxies">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+            <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+            <line x1="6" y1="6" x2="6.01" y2="6"></line>
+            <line x1="6" y1="18" x2="6.01" y2="18"></line>
+          </svg>
+          <span>Proxy List</span>
+        </button>
+
+        <button class="nav-item" data-tab="settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span>Settings</span>
+        </button>
+
+        <button class="nav-item" data-tab="help">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <span>Guide (GoLogin/GeeLark)</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="hotkey-pill">
+          <span class="label">Auto-Fill Hotkey</span>
+          <kbd id="lblGlobalHotkey">Alt + F</kbd>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Stats Bar -->
+      <header class="content-header">
+        <div class="stats-row">
+          <div class="stat-card">
+            <span class="stat-title">Total Proxies</span>
+            <span class="stat-val" id="statTotal">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-title">Active (Ready)</span>
+            <span class="stat-val text-success" id="statReady">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-title">Done (Inactive)</span>
+            <span class="stat-val text-muted" id="statUsed">0</span>
+          </div>
+          <div class="stat-card highlight">
+            <span class="stat-title">Current Proxy</span>
+            <span class="stat-val text-primary" id="statActive">#1</span>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button class="btn btn-outline" id="btnOpenOverlay">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 19 21 12 17 5 21 12 2"></polygon>
+            </svg>
+            Floating Overlay
+          </button>
+          <button class="btn btn-secondary" id="btnExportCSV" title="Export Proxies to CSV">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Export CSV
+          </button>
+          <button class="btn btn-primary" id="btnOpenImport">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            Import Proxies / CSV
+          </button>
+          <button class="btn btn-secondary" id="btnOpenAdd">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Add Single
+          </button>
+        </div>
+      </header>
+
+      <!-- View: Proxies Tab -->
+      <section class="tab-view active" id="view-proxies">
+        <!-- Filter Toolbar -->
+        <div class="filter-toolbar">
+          <div class="search-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="searchInput" placeholder="Search by Host, Port, User, Tag...">
+          </div>
+
+          <div class="filter-group">
+            <button class="btn btn-secondary" id="btnMarkDoneSelected" style="display: none;" title="Mark selected proxies as Done / Inactive">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              Mark Done
+            </button>
+
+            <button class="btn btn-secondary" id="btnMarkActiveSelected" style="display: none;" title="Mark selected proxies as Active">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+              </svg>
+              Mark Active
+            </button>
+
+            <button class="btn btn-danger" id="btnDeleteSelected" style="display: none;" title="Delete all selected proxies">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              Delete (<span id="selectedCount">0</span>)
+            </button>
+
+            <select id="typeFilter">
+              <option value="ALL">All Protocols</option>
+              <option value="HTTP">HTTP / HTTPS</option>
+              <option value="SOCKS5">SOCKS5</option>
+            </select>
+
+            <select id="statusFilter">
+              <option value="ALL">All Status</option>
+              <option value="active">Active (Ready)</option>
+              <option value="done">Done (Inactive)</option>
+            </select>
+
+            <button class="btn btn-icon danger" id="btnClearAll" title="Clear All Proxies">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Proxies Table Container -->
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th width="38" style="text-align: center;">
+                  <input type="checkbox" id="selectAllCheckbox" title="Select All on page">
+                </th>
+                <th width="85">Current</th>
+                <th width="45">#</th>
+                <th width="85">Protocol</th>
+                <th>Host : Port</th>
+                <th>Username</th>
+                <th>Password</th>
+                <th>Tags</th>
+                <th>Status</th>
+                <th>Used</th>
+                <th width="155" class="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="proxyTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+          <div class="empty-state" id="emptyState" style="display: none;">
+            <p>No proxies found. Click "Import Proxies / CSV" or "Add Single" to add your proxies.</p>
+          </div>
+
+          <!-- Pagination Bar -->
+          <div class="pagination-bar" id="paginationBar">
+            <div class="pagination-info" id="paginationInfo">
+              Showing <span id="pageStart">0</span>–<span id="pageEnd">0</span> of <span id="pageTotal">0</span> proxies
+            </div>
+
+            <div class="pagination-controls">
+              <div class="page-size-selector">
+                <span>Per page:</span>
+                <select id="pageSizeSelect">
+                  <option value="10" selected>10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                  <option value="all">All</option>
+                </select>
+              </div>
+
+              <div class="page-nav">
+                <button class="btn btn-icon pagination-btn" id="btnFirstPage" title="First Page">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg>
+                </button>
+                <button class="btn btn-icon pagination-btn" id="btnPrevPage" title="Previous Page">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+
+                <div class="page-numbers" id="pageNumbers"></div>
+
+                <button class="btn btn-icon pagination-btn" id="btnNextPage" title="Next Page">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+                <button class="btn btn-icon pagination-btn" id="btnLastPage" title="Last Page">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- View: Settings Tab -->
+      <section class="tab-view" id="view-settings">
+        <div class="settings-container">
+          <div class="card">
+            <h3>Automation & Hotkey Settings</h3>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Auto-Fill Global Shortcut</label>
+                <input type="text" id="cfgGlobalHotkey" value="Alt+F" placeholder="e.g. Alt+F, Ctrl+Shift+V">
+                <small>Works in GoLogin, GeeLark, etc. without needing to switch window.</small>
+              </div>
+
+              <div class="form-group">
+                <label>Fill Mode</label>
+                <select id="cfgFillMode">
+                  <option value="tab-sequence">Tab Sequence (Host -> Tab -> Port -> Tab -> User -> Tab -> Pass)</option>
+                  <option value="single-line">Single-Line Paste (Host:Port:User:Pass)</option>
+                  <option value="cred-only">Credentials Only (Username -> Tab -> Password)</option>
+                </select>
+                <small>Select the format preferred by your target browser software.</small>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Typing / Tab Delay (milliseconds)</label>
+                <input type="number" id="cfgDelayMs" value="45" min="10" max="500">
+                <small>Default is 45ms. Increase if the target software lags during auto-fill.</small>
+              </div>
+
+              <div class="form-group">
+                <label>Cursor Start & Protocol Handling</label>
+                <select id="cfgStartField">
+                  <option value="host-only" selected>Host Field (Safe Direct: Host -> Port -> User -> Pass) [Recommended]</option>
+                  <option value="dropdown">Dropdown First (Cursor in Protocol Dropdown -> Host -> Port -> User -> Pass)</option>
+                  <option value="host-with-protocol">Smart Shift+Tab (Auto-Selects Protocol via Shift+Tab from Host)</option>
+                </select>
+                <small>Safe Direct mode clears text inside the box only, preventing full page selection and button misclicks.</small>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group checkbox-group">
+                <label class="switch-label">
+                  <input type="checkbox" id="cfgAutoAdvance" checked>
+                  <span>Auto-advance to next proxy after successful fill</span>
+                </label>
+              </div>
+            </div>
+
+            <button class="btn btn-primary" id="btnSaveSettings">Save Settings</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- View: Guide Tab -->
+      <section class="tab-view" id="view-help">
+        <div class="guide-container card">
+          <h3>GoLogin ও GeeLark-এ কীভাবে ব্যবহার করবেন</h3>
+          
+          <div class="step-guide">
+            <div class="step-box">
+              <div class="step-number">১</div>
+              <h4>প্রক্সি ইমপোর্ট করুন</h4>
+              <p>ড্যাশবোর্ডের <b>"Import Proxies / CSV"</b> বাটনে ক্লিক করে আপনার প্রক্সি লিস্ট ড্রপ করুন বা পেস্ট করুন। সাধারণ <code>IP:Port:User:Pass</code> অথবা CSV ফরম্যাট যেকোনোটি সাপোর্ট করে।</p>
+            </div>
+
+            <div class="step-box">
+              <div class="step-number">২</div>
+              <h4>ফ্লোটিং টুলবার চালু রাখুন</h4>
+              <p>ফ্লোটিং টুলবারটি স্ক্রিনের যেকোনো জায়গায় রেখে দিন। এটি সবসময় অন্য সব সফটওয়্যারের উপরে থাকবে।</p>
+            </div>
+
+            <div class="step-box">
+              <div class="step-number">৩</div>
+              <h4>GoLogin বা GeeLark-এ ফিল করুন</h4>
+              <p>টার্গেট ব্রাউজারের <b>"Host / IP"</b> বক্সে কার্সার রাখুন, তারপর কিবোর্ডে <b>Alt + F</b> চাপুন (বা ফ্লোটিং বারের <b>Fill</b> বাটনে ক্লিক করুন)। এটি স্বয়ংক্রিয়ভাবে ড্রপডাউনে গিয়ে <b>SOCKS5 / HTTP</b> সিলেক্ট করবে, আগের যেকোনো ডিফল্ট টেক্সট থাকলে তা মুছে ফেলবে, এবং Host, Port, Username, Password নিখুঁতভাবে টাইপ করে দেবে!</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal: Import CSV / Text -->
+  <div class="modal-backdrop" id="modalImport">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Import Proxies (CSV or Raw List)</h3>
+        <button class="modal-close" id="btnCloseImportModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">
+          Drag and drop a CSV file, or paste your proxy list below. Supports <code>IP:PORT:USER:PASS</code>, <code>IP:PORT</code>, or standard CSV headers.
+        </p>
+
+        <!-- Dropzone -->
+        <div class="dropzone" id="dropzone">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <span>Drop CSV file here or click to browse</span>
+          <input type="file" id="fileInput" accept=".csv,.txt" style="display: none;">
+        </div>
+
+        <div class="form-row" style="margin-bottom: 12px;">
+          <div class="form-group">
+            <label for="importDefaultType">Protocol to apply (if not in URL):</label>
+            <select id="importDefaultType">
+              <option value="SOCKS5" selected>SOCKS5 (Standard for GoLogin & GeeLark)</option>
+              <option value="HTTP">HTTP / HTTPS</option>
+              <option value="SOCKS4">SOCKS4</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="textarea-container">
+          <label>Or Paste Raw Proxy Lines:</label>
+          <textarea id="txtImport" rows="7" placeholder="198.51.100.1:8080:user1:pass1&#10;198.51.100.2:8080:user2:pass2&#10;http://user:pass@198.51.100.3:1080"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCancelImport">Cancel</button>
+        <button class="btn btn-primary" id="btnSubmitImport">Import Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add Single Proxy -->
+  <div class="modal-backdrop" id="modalAdd">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Add Proxy Manually</h3>
+        <button class="modal-close" id="btnCloseAddModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Proxy Name / Label</label>
+            <input type="text" id="addName" placeholder="e.g. US Residential 01">
+          </div>
+          <div class="form-group">
+            <label>Protocol</label>
+            <select id="addType">
+              <option value="HTTP">HTTP</option>
+              <option value="HTTPS">HTTPS</option>
+              <option value="SOCKS5">SOCKS5</option>
+              <option value="SOCKS4">SOCKS4</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Host / IP *</label>
+            <input type="text" id="addHost" placeholder="e.g. 198.51.100.12" required>
+          </div>
+          <div class="form-group">
+            <label>Port *</label>
+            <input type="text" id="addPort" placeholder="e.g. 8080" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Username (Optional)</label>
+            <input type="text" id="addUser" placeholder="Proxy Username">
+          </div>
+          <div class="form-group">
+            <label>Password (Optional)</label>
+            <input type="text" id="addPass" placeholder="Proxy Password">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Tags (Comma separated)</label>
+          <input type="text" id="addTags" placeholder="USA, GoLogin, Premium">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCancelAdd">Cancel</button>
+        <button class="btn btn-primary" id="btnSubmitAdd">Add Proxy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="dashboard-toast" id="dashToast"></div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

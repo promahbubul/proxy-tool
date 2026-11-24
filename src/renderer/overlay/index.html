@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartFill Overlay</title>
+  <link rel="stylesheet" href="overlay.css">
+</head>
+<body>
+  <div class="overlay-container" id="overlay">
+    <!-- Drag Handle -->
+    <div class="drag-handle" title="Drag to move">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="9" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/>
+        <circle cx="15" cy="5" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="15" cy="19" r="1.5"/>
+      </svg>
+    </div>
+
+    <!-- Active Proxy Info Display -->
+    <div class="proxy-info" id="proxyInfo">
+      <div class="badge-row">
+        <span class="type-badge" id="proxyType">HTTP</span>
+        <span class="index-badge" id="proxyIndex">0 / 0</span>
+      </div>
+      <div class="host-port" id="proxyHost" title="Click to copy">No proxy loaded</div>
+    </div>
+
+    <!-- Actions Bar -->
+    <div class="actions">
+      <!-- Prev Button -->
+      <button class="icon-btn" id="btnPrev" title="Previous Proxy">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+
+      <!-- Next Button -->
+      <button class="icon-btn" id="btnNext" title="Next Proxy (Alt+N)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+
+      <!-- Primary FILL Button -->
+      <button class="fill-btn" id="btnFill" title="Auto-Fill into Target Field (Alt+F)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        <span>Fill</span>
+      </button>
+
+      <!-- Done / Inactive Toggle Button -->
+      <button class="done-btn" id="btnDone" title="Toggle Done / Inactive (Alt+D)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span id="lblDoneText">Done</span>
+      </button>
+
+      <!-- Copy Button -->
+      <button class="icon-btn" id="btnCopy" title="Copy to Clipboard (Alt+C)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      </button>
+
+      <!-- Dashboard Button -->
+      <button class="icon-btn" id="btnDashboard" title="Open Full Dashboard">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+      </button>
+
+      <!-- Minimize / Hide Button -->
+      <button class="icon-btn danger" id="btnClose" title="Hide Overlay">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="overlay.js"></script>
+</body>
+</html>

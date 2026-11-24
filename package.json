@@ -1,0 +1,24 @@
+{
+  "name": "smartfill-overlay",
+  "version": "1.0.0",
+  "description": "Smart Auto-Fill & Proxy Assistant for Windows with Floating Overlay and Dashboard",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "node run.js",
+    "build": "electron-builder"
+  },
+  "keywords": [
+    "proxy",
+    "autofill",
+    "gologin",
+    "geelark",
+    "overlay",
+    "automation"
+  ],
+  "author": "Mahbub",
+  "license": "MIT",
+  "dependencies": {
+    "electron": "^45.4.1",
+    "papaparse": "^5.7.1"
+  }
+}
