@@ -155,7 +155,7 @@
     "nextHotkey": "Alt+N",
     "autoAdvanceOnFill": true,
     "fillDelayMs": 45,
-    "targetBrowser": "smart",
+    "targetBrowser": "geelark",
     "fillMode": "tab-sequence",
     "startField": "dropdown",
     "activeProxyIndex": 0

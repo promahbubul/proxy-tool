@@ -111,143 +111,143 @@ function render(data) {
     const proxies = currentStore ? (currentStore.proxies || []) : [];
     const settings = currentStore ? (currentStore.settings || {}) : {};
 
-  // Clean up selected IDs that no longer exist
-  const existingIds = new Set(proxies.map(p => p.id));
-  for (let id of Array.from(selectedProxyIds)) {
-    if (!existingIds.has(id)) {
-      selectedProxyIds.delete(id);
-    }
-  }
-  updateBulkDeleteUI();
-
-  const checkIsDone = (p) => p.status === 'done' || p.status === 'used' || p.status === 'inactive';
-  const activeProxies = proxies.filter(p => !checkIsDone(p));
-
-  // Determine which active proxy is current for the toolbar
-  let currentActiveProxy = null;
-  if (activeProxies.length > 0) {
-    if (settings.activeProxyId) {
-      currentActiveProxy = activeProxies.find(p => p.id === settings.activeProxyId) || activeProxies[0];
-    } else {
-      const idx = (typeof settings.activeProxyIndex === 'number' && settings.activeProxyIndex >= 0 && settings.activeProxyIndex < activeProxies.length) ? settings.activeProxyIndex : 0;
-      currentActiveProxy = activeProxies[idx] || activeProxies[0];
-    }
-  }
-
-  // Stats
-  statTotal.textContent = proxies.length;
-  statReady.textContent = activeProxies.length;
-  statUsed.textContent = proxies.length - activeProxies.length;
-  statActive.textContent = currentActiveProxy ? `${currentActiveProxy.host}:${currentActiveProxy.port}` : 'None';
-  lblGlobalHotkey.textContent = settings.globalHotkey || 'Alt + F';
-
-  // Settings tab values
-  if (cfgTargetBrowser) {
-    cfgTargetBrowser.value = settings.targetBrowser || 'smart';
-  }
-  if (cfgGlobalHotkey) cfgGlobalHotkey.value = settings.globalHotkey || 'Alt+F';
-  if (cfgFillMode) cfgFillMode.value = settings.fillMode || 'tab-sequence';
-  if (cfgDelayMs) cfgDelayMs.value = settings.fillDelayMs || 45;
-  if (cfgStartField) {
-    cfgStartField.value = settings.startField || 'host-only';
-  }
-  if (cfgAutoAdvance) cfgAutoAdvance.checked = settings.autoAdvanceOnFill !== false;
-
-  // Filter and search
-  const query = (searchInput && searchInput.value ? searchInput.value : '').toLowerCase().trim();
-  const selectedType = typeFilter ? (typeFilter.value || 'ALL') : 'ALL';
-  const selectedStatus = statusFilter ? (statusFilter.value || 'ALL') : 'ALL';
-
-  const filtered = proxies.filter((p) => {
-    if (selectedType && selectedType.toUpperCase() !== 'ALL') {
-      const pType = (p.type || 'HTTP').toUpperCase();
-      if (selectedType.toUpperCase() === 'HTTP') {
-        if (pType !== 'HTTP' && pType !== 'HTTPS') return false;
-      } else if (pType !== selectedType.toUpperCase()) {
-        return false;
+    // Clean up selected IDs that no longer exist
+    const existingIds = new Set(proxies.map(p => p.id));
+    for (let id of Array.from(selectedProxyIds)) {
+      if (!existingIds.has(id)) {
+        selectedProxyIds.delete(id);
       }
     }
-    const isDone = checkIsDone(p);
-    if (selectedStatus === 'active' && isDone) return false;
-    if (selectedStatus === 'done' && !isDone) return false;
+    updateBulkDeleteUI();
 
-    if (query) {
-      const tags = Array.isArray(p.tags) ? p.tags : (typeof p.tags === 'string' ? [p.tags] : []);
-      const match = (
-        (p.name || '').toLowerCase().includes(query) ||
-        (p.host || '').toLowerCase().includes(query) ||
-        (p.port || '').toString().includes(query) ||
-        (p.username || '').toLowerCase().includes(query) ||
-        tags.some(t => String(t).toLowerCase().includes(query))
-      );
-      if (!match) return false;
+    const checkIsDone = (p) => p.status === 'done' || p.status === 'used' || p.status === 'inactive';
+    const activeProxies = proxies.filter(p => !checkIsDone(p));
+
+    // Determine which active proxy is current for the toolbar
+    let currentActiveProxy = null;
+    if (activeProxies.length > 0) {
+      if (settings.activeProxyId) {
+        currentActiveProxy = activeProxies.find(p => p.id === settings.activeProxyId) || activeProxies[0];
+      } else {
+        const idx = (typeof settings.activeProxyIndex === 'number' && settings.activeProxyIndex >= 0 && settings.activeProxyIndex < activeProxies.length) ? settings.activeProxyIndex : 0;
+        currentActiveProxy = activeProxies[idx] || activeProxies[0];
+      }
     }
 
-    return true;
-  });
+    // Stats
+    statTotal.textContent = proxies.length;
+    statReady.textContent = activeProxies.length;
+    statUsed.textContent = proxies.length - activeProxies.length;
+    statActive.textContent = currentActiveProxy ? `${currentActiveProxy.host}:${currentActiveProxy.port}` : 'None';
+    lblGlobalHotkey.textContent = settings.globalHotkey || 'Alt + F';
 
-  // Sort: Active/Unused proxies at TOP, Inactive/Done proxies at the BOTTOM
-  filtered.sort((a, b) => {
-    const aDone = checkIsDone(a) ? 1 : 0;
-    const bDone = checkIsDone(b) ? 1 : 0;
-    if (aDone !== bDone) {
-      return aDone - bDone; // 0 (Active) first, 1 (Inactive) last
+    // Settings tab values
+    if (cfgTargetBrowser) {
+      cfgTargetBrowser.value = settings.targetBrowser || 'geelark';
     }
-    const aOrig = proxies.findIndex(item => item.id === a.id);
-    const bOrig = proxies.findIndex(item => item.id === b.id);
-    return aOrig - bOrig;
-  });
+    if (cfgGlobalHotkey) cfgGlobalHotkey.value = settings.globalHotkey || 'Alt+F';
+    if (cfgFillMode) cfgFillMode.value = settings.fillMode || 'tab-sequence';
+    if (cfgDelayMs) cfgDelayMs.value = settings.fillDelayMs || 45;
+    if (cfgStartField) {
+      cfgStartField.value = settings.startField || 'host-only';
+    }
+    if (cfgAutoAdvance) cfgAutoAdvance.checked = settings.autoAdvanceOnFill !== false;
 
-  // Pagination calculation
-  const totalCount = filtered.length;
-  const actualPageSize = pageSize === 'all' ? (totalCount || 1) : parseInt(pageSize, 10);
-  const totalPages = Math.max(1, Math.ceil(totalCount / actualPageSize));
-  if (currentPage > totalPages) currentPage = totalPages;
-  if (currentPage < 1) currentPage = 1;
+    // Filter and search
+    const query = (searchInput && searchInput.value ? searchInput.value : '').toLowerCase().trim();
+    const selectedType = typeFilter ? (typeFilter.value || 'ALL') : 'ALL';
+    const selectedStatus = statusFilter ? (statusFilter.value || 'ALL') : 'ALL';
 
-  const startIndex = totalCount === 0 ? 0 : (currentPage - 1) * actualPageSize;
-  const endIndex = Math.min(startIndex + actualPageSize, totalCount);
-  const pageItems = filtered.slice(startIndex, endIndex);
-
-  // Update pagination indicators
-  if (pageStart) pageStart.textContent = totalCount === 0 ? 0 : startIndex + 1;
-  if (pageEnd) pageEnd.textContent = endIndex;
-  if (pageTotal) pageTotal.textContent = totalCount;
-
-  renderPaginationControls(totalPages);
-
-  proxyTableBody.innerHTML = '';
-
-  if (pageItems.length === 0) {
-    emptyState.style.display = 'block';
-    selectAllCheckbox.checked = false;
-  } else {
-    emptyState.style.display = 'none';
-
-    // Check if all filtered on current page are selected
-    const allPageSelected = pageItems.every(p => selectedProxyIds.has(p.id));
-    selectAllCheckbox.checked = allPageSelected && pageItems.length > 0;
-
-    pageItems.forEach((p, idx) => {
-      const displayIndex = startIndex + idx;
+    const filtered = proxies.filter((p) => {
+      if (selectedType && selectedType.toUpperCase() !== 'ALL') {
+        const pType = (p.type || 'HTTP').toUpperCase();
+        if (selectedType.toUpperCase() === 'HTTP') {
+          if (pType !== 'HTTP' && pType !== 'HTTPS') return false;
+        } else if (pType !== selectedType.toUpperCase()) {
+          return false;
+        }
+      }
       const isDone = checkIsDone(p);
-      const isCurrent = currentActiveProxy && currentActiveProxy.id === p.id;
-      const isChecked = selectedProxyIds.has(p.id);
+      if (selectedStatus === 'active' && isDone) return false;
+      if (selectedStatus === 'done' && !isDone) return false;
 
-      const tr = document.createElement('tr');
-      if (isCurrent) tr.classList.add('active-row');
-      if (isDone) tr.classList.add('inactive-row');
+      if (query) {
+        const tags = Array.isArray(p.tags) ? p.tags : (typeof p.tags === 'string' ? [p.tags] : []);
+        const match = (
+          (p.name || '').toLowerCase().includes(query) ||
+          (p.host || '').toLowerCase().includes(query) ||
+          (p.port || '').toString().includes(query) ||
+          (p.username || '').toLowerCase().includes(query) ||
+          tags.some(t => String(t).toLowerCase().includes(query))
+        );
+        if (!match) return false;
+      }
 
-      const statusBadge = `
+      return true;
+    });
+
+    // Sort: Active/Unused proxies at TOP, Inactive/Done proxies at the BOTTOM
+    filtered.sort((a, b) => {
+      const aDone = checkIsDone(a) ? 1 : 0;
+      const bDone = checkIsDone(b) ? 1 : 0;
+      if (aDone !== bDone) {
+        return aDone - bDone; // 0 (Active) first, 1 (Inactive) last
+      }
+      const aOrig = proxies.findIndex(item => item.id === a.id);
+      const bOrig = proxies.findIndex(item => item.id === b.id);
+      return aOrig - bOrig;
+    });
+
+    // Pagination calculation
+    const totalCount = filtered.length;
+    const actualPageSize = pageSize === 'all' ? (totalCount || 1) : parseInt(pageSize, 10);
+    const totalPages = Math.max(1, Math.ceil(totalCount / actualPageSize));
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIndex = totalCount === 0 ? 0 : (currentPage - 1) * actualPageSize;
+    const endIndex = Math.min(startIndex + actualPageSize, totalCount);
+    const pageItems = filtered.slice(startIndex, endIndex);
+
+    // Update pagination indicators
+    if (pageStart) pageStart.textContent = totalCount === 0 ? 0 : startIndex + 1;
+    if (pageEnd) pageEnd.textContent = endIndex;
+    if (pageTotal) pageTotal.textContent = totalCount;
+
+    renderPaginationControls(totalPages);
+
+    proxyTableBody.innerHTML = '';
+
+    if (pageItems.length === 0) {
+      emptyState.style.display = 'block';
+      selectAllCheckbox.checked = false;
+    } else {
+      emptyState.style.display = 'none';
+
+      // Check if all filtered on current page are selected
+      const allPageSelected = pageItems.every(p => selectedProxyIds.has(p.id));
+      selectAllCheckbox.checked = allPageSelected && pageItems.length > 0;
+
+      pageItems.forEach((p, idx) => {
+        const displayIndex = startIndex + idx;
+        const isDone = checkIsDone(p);
+        const isCurrent = currentActiveProxy && currentActiveProxy.id === p.id;
+        const isChecked = selectedProxyIds.has(p.id);
+
+        const tr = document.createElement('tr');
+        if (isCurrent) tr.classList.add('active-row');
+        if (isDone) tr.classList.add('inactive-row');
+
+        const statusBadge = `
         <span class="status-badge ${isDone ? 'inactive' : 'active'}">
           <span class="status-dot ${isDone ? 'used' : 'ready'}"></span>
           ${isDone ? 'Inactive' : 'Active'}
         </span>
       `;
-      const typeBadge = `<button class="table-badge ${(p.type || 'SOCKS5').toLowerCase()}" data-action="toggle-type" data-id="${p.id}" title="Click to toggle SOCKS5 / HTTP">${p.type || 'SOCKS5'}</button>`;
-      const tagsHtml = (p.tags || []).map(t => `<span class="tag-pill">${t}</span>`).join('');
+        const typeBadge = `<button class="table-badge ${(p.type || 'SOCKS5').toLowerCase()}" data-action="toggle-type" data-id="${p.id}" title="Click to toggle SOCKS5 / HTTP">${p.type || 'SOCKS5'}</button>`;
+        const tagsHtml = (p.tags || []).map(t => `<span class="tag-pill">${t}</span>`).join('');
 
-      tr.innerHTML = `
+        tr.innerHTML = `
         <td style="text-align: center;">
           <input type="checkbox" class="row-checkbox" data-id="${p.id}" ${isChecked ? 'checked' : ''}>
         </td>
@@ -271,9 +271,9 @@ function render(data) {
                     data-action="toggle-status" 
                     data-id="${p.id}">
               ${isDone ?
-                '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>' :
-                '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>'
-              }
+            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>' :
+            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>'
+          }
             </button>
             <button class="btn btn-icon" title="Copy (host:port:user:pass)" data-action="copy" data-id="${p.id}">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
@@ -293,21 +293,21 @@ function render(data) {
         </td>
       `;
 
-      // Row Checkbox change
-      const chk = tr.querySelector('.row-checkbox');
-      chk.addEventListener('change', (e) => {
-        if (e.target.checked) {
-          selectedProxyIds.add(p.id);
-        } else {
-          selectedProxyIds.delete(p.id);
-        }
-        updateBulkDeleteUI();
-        selectAllCheckbox.checked = pageItems.every(item => selectedProxyIds.has(item.id));
-      });
+        // Row Checkbox change
+        const chk = tr.querySelector('.row-checkbox');
+        chk.addEventListener('change', (e) => {
+          if (e.target.checked) {
+            selectedProxyIds.add(p.id);
+          } else {
+            selectedProxyIds.delete(p.id);
+          }
+          updateBulkDeleteUI();
+          selectAllCheckbox.checked = pageItems.every(item => selectedProxyIds.has(item.id));
+        });
 
-      proxyTableBody.appendChild(tr);
-    });
-  }
+        proxyTableBody.appendChild(tr);
+      });
+    }
   } catch (err) {
     console.error('Error in render():', err);
   }
@@ -390,7 +390,7 @@ if (btnLastPage) {
 selectAllCheckbox.addEventListener('change', (e) => {
   const isChecked = e.target.checked;
   const proxies = currentStore ? currentStore.proxies || [] : [];
-  
+
   // Filter currently visible
   const query = (searchInput && searchInput.value ? searchInput.value : '').toLowerCase().trim();
   const selectedType = typeFilter ? (typeFilter.value || 'ALL') : 'ALL';
@@ -695,7 +695,7 @@ btnSubmitAdd.addEventListener('click', async () => {
 
 // Save Settings
 btnSaveSettings.addEventListener('click', async () => {
-  const targetBrowser = cfgTargetBrowser ? cfgTargetBrowser.value : 'gologin';
+  const targetBrowser = cfgTargetBrowser ? cfgTargetBrowser.value : 'geelark';
   const hotkey = cfgGlobalHotkey.value.trim() || 'Alt+F';
   const fillMode = cfgFillMode ? cfgFillMode.value : 'tab-sequence';
   const delay = parseInt(cfgDelayMs.value, 10) || 45;

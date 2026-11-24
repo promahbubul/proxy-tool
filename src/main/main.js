@@ -180,7 +180,7 @@ async function triggerActiveFill(fromOverlayClick = false) {
   }
 
   const settings = store.getSettings();
-  const targetBrowser = settings.targetBrowser || 'gologin';
+  const targetBrowser = settings.targetBrowser || 'geelark';
   syncWindows('notify', { message: `Filling [${targetBrowser.toUpperCase()}]: ${current.host}:${current.port}...`, type: 'info' });
 
   // Execute fill

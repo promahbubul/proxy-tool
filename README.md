@@ -52,9 +52,8 @@ npm start
 ## 🎯 বিভিন্ন ব্রাউজারে ব্যবহারের নিয়ম (Target Browser Presets)
 
 ভাসমান টুলবারে একটি **Browser Selector** দেওয়া আছে:
-- **✨ Smart Detect (Auto) [Recommended]:** এটি পেজে থাকা সমস্ত ইনপুট বক্স স্ক্যান করে সরাসরি `Host`, `Port`, `Username`, `Password`, এবং `Proxy Type` খুঁজে বের করে নিজে থেকেই সঠিক বক্সে মান বসায়! কার্সার যেখানেই থাকুক, এটি নিখুঁতভাবে ফিল করবে।
-- **GeeLark (Type First):** GeeLark-এর `Type` ড্রপডাউনে (`DECODO` বা যেটাই থাকুক) ক্লিক করে `Alt+F` চাপলে স্বয়ংক্রিয়ভাবে প্রোটোকল (SOCKS5/HTTP) সিলেক্ট হবে, Host, Port, Username, Password ফিল হবে এবং শেষে Check Proxy বাটনে ক্লিক করে ভেরিফিকেশন কমপ্লিট করবে!
-- **GeeLark (Host Box):** GeeLark-এর `Host` বক্সে ক্লিক করে `Alt+F` চাপলে Host, Port, Username, Password ফিল হবে এবং Check Proxy টেস্ট হবে।
+- **GeeLark [Default]:** টুলবক্স থেকে GeeLark সিলেক্ট করা থাকলে এটি শুধুমাত্র মার্ক করা ফিল্ডগুলো ফিল করবে: ড্রপডাউন থেকে Proxy Type সিলেক্ট করবে -> Host ফিল্ডে Hostname -> Port ফিল্ডে Port -> Username ফিল্ডে Username -> Password ফিল্ডে Password। অন্য কোনো বাটন (যেমন Check Proxy) ক্লিক করবে না।
+- **✨ Smart Detect (Auto):** এটি পেজে থাকা ইনপুট বক্স স্ক্যান করে সরাসরি `Host`, `Port`, `Username`, `Password`, এবং `Proxy Type` খুঁজে বের করে নিজে থেকেই সঠিক বক্সে মান বসায়।
 - **GoLogin:** GoLogin-এর Proxy Type ড্রপডাউনে কার্সার রেখে `Alt+F` চাপলে ড্রপডাউন সিলেক্ট করে IP, Port, Username, Password ফিল করে।
 - **AdsPower:** AdsPower-এর Host ফিল্ডে কার্সার রেখে `Alt+F` চাপলে Host, Port, User, Password অটো-ফিল হয়।
 - **Dolphin{anty}:** Dolphin-এর "New proxy" বক্সে কার্সার রেখে `Alt+F` চাপলে এক লাইনে পুরো প্রক্সি পেস্ট হয়ে সম্পূর্ণ কনফিগার হয়ে যায়।

@@ -25,13 +25,13 @@ function updateUI(data) {
   store = data;
   const proxies = store.proxies || [];
   const isDone = (p) => p.status === 'done' || p.status === 'used' || p.status === 'inactive';
-  
+
   // Filter ONLY active / unused proxies for the floating toolbar
   const activeProxies = proxies.filter(p => !isDone(p));
   const s = store.settings || {};
 
   // Sync selected target browser
-  const targetBrowser = s.targetBrowser || 'gologin';
+  const targetBrowser = s.targetBrowser || 'geelark';
   if (browserSelect && browserSelect.value !== targetBrowser) {
     browserSelect.value = targetBrowser;
   }
@@ -85,9 +85,8 @@ browserSelect.addEventListener('change', async (e) => {
   const chosen = e.target.value;
   await window.api.setTargetBrowser(chosen);
   const browserTips = {
+    geelark: 'GeeLark: Fills Type -> Host -> Port -> Username -> Password',
     smart: 'Smart Mode: Click anywhere in the form, then Fill!',
-    geelark: 'GeeLark: Click "Type" dropdown, then Fill',
-    'geelark-host': 'GeeLark: Click "Host" box, then Fill',
     gologin: 'GoLogin: Click "Proxy Type" dropdown, then Fill',
     adspower: 'AdsPower: Click inside "Host" box, then Fill',
     dolphin: 'Dolphin: Click inside "New proxy" box, then Fill',
