@@ -85,6 +85,7 @@ browserSelect.addEventListener('change', async (e) => {
   const chosen = e.target.value;
   await window.api.setTargetBrowser(chosen);
   const browserTips = {
+    smart: 'Smart Mode: Click anywhere in the form, then Fill!',
     geelark: 'GeeLark: Click "Type" dropdown, then Fill',
     'geelark-host': 'GeeLark: Click "Host" box, then Fill',
     gologin: 'GoLogin: Click "Proxy Type" dropdown, then Fill',

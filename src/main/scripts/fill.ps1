@@ -4,16 +4,18 @@ param(
     [string]$PortVal = "",
     [string]$UserVal = "",
     [string]$PassVal = "",
-    [string]$Browser = "geelark",
+    [string]$Browser = "smart", # 'smart', 'geelark', 'geelark-host', 'gologin', 'adspower', 'dolphin', 'universal'
     [string]$StartField = "dropdown",
     [string]$Mode = "tab-sequence",
     [int]$DelayMs = 45,
     [switch]$SwitchToPreviousWindow
 )
 
+Add-Type -AssemblyName UIAutomationClient
+Add-Type -AssemblyName UIAutomationTypes
 Add-Type -AssemblyName System.Windows.Forms
 
-# Decode from environment variable if present (immune to CLI quoting, missing empty params, and $ variable expansion)
+# 1. Decode from environment variable if present (bulletproof against CLI quoting & $ variable expansion)
 if ($env:SMARTFILL_PAYLOAD) {
     try {
         $pObj = $env:SMARTFILL_PAYLOAD | ConvertFrom-Json
@@ -95,11 +97,206 @@ if ($SwitchToPreviousWindow) {
     Start-Sleep -Milliseconds 180
 }
 
+# =====================================================================
+# SMART UI AUTOMATION ENGINE (Finds fields anywhere on the page)
+# =====================================================================
+function Try-SmartUIADetectionAndFill {
+    try {
+        $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
+        if ($null -eq $focused) { return $false }
+
+        # Traverse up to find the active top-level target window (GeeLark, GoLogin, AdsPower, etc.)
+        $walker = [System.Windows.Automation.TreeWalker]::ControlViewWalker
+        $cur = $focused
+        while ($null -ne $cur -and $cur.Current.ControlType -ne [System.Windows.Automation.ControlType]::Window) {
+            $parent = $walker.GetParent($cur)
+            if ($null -eq $parent) { break }
+            $cur = $parent
+        }
+        $targetWin = $cur
+        if ($null -eq $targetWin) { return $false }
+
+        # Query all Edit controls (input boxes) inside target window
+        $condEdit = New-Object System.Windows.Automation.PropertyCondition(
+            [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+            [System.Windows.Automation.ControlType]::Edit
+        )
+        $edits = $targetWin.FindAll([System.Windows.Automation.TreeScope]::Descendants, $condEdit)
+        if ($edits.Count -lt 2) { return $false }
+
+        $foundHost = $null
+        $foundPort = $null
+        $foundUser = $null
+        $foundPass = $null
+
+        foreach ($e in $edits) {
+            $name = ($e.Current.Name + " " + $e.Current.HelpText + " " + $e.Current.AutomationId).ToLower()
+            $isPass = $e.Current.IsPassword
+
+            # 1. Password input: HTML <input type="password"> always sets IsPassword=true in UIA!
+            if ($isPass -or ($name -match "pass|secret" -and $name -notmatch "bypass")) {
+                if ($null -eq $foundPass) { $foundPass = $e; continue }
+            }
+
+            # 2. Username input: matching user/login/account
+            if ($name -match "user|login|account|uname" -and $name -notmatch "pass") {
+                if ($null -eq $foundUser) { $foundUser = $e; continue }
+            }
+
+            # 3. Port input: matching port or ':'
+            if ($name -match "port|\b:\b" -and $name -notmatch "original") {
+                if ($null -eq $foundPort) { $foundPort = $e; continue }
+            }
+
+            # 4. Host input: matching host/ip/server/address (excluding "original ip")
+            if ($name -match "host|server|proxy ip|\bip\b|address" -and $name -notmatch "original ip") {
+                if ($null -eq $foundHost) { $foundHost = $e; continue }
+            }
+        }
+
+        # If name matching missed Port but found Host, check geometry (Port is directly to the right of Host)
+        if ($null -ne $foundHost -and $null -eq $foundPort) {
+            $hRect = $foundHost.Current.BoundingRectangle
+            foreach ($e in $edits) {
+                if ($e -ne $foundHost -and $e -ne $foundPass -and $e -ne $foundUser) {
+                    $eRect = $e.Current.BoundingRectangle
+                    # Same Y-level (within 15px) and to the right of Host
+                    if ([Math]::Abs($eRect.Y - $hRect.Y) -lt 15 -and $eRect.X -gt $hRect.X) {
+                        $foundPort = $e
+                        break
+                    }
+                }
+            }
+        }
+
+        # We must identify at least Host and Port to be confident in Smart UIA
+        if ($null -eq $foundHost -or $null -eq $foundPort) {
+            return $false
+        }
+
+        Write-Host "SmartFill: UI Automation matched fields successfully!"
+
+        # Query ComboBox for Proxy Type
+        $foundCombo = $null
+        try {
+            $condCombo = New-Object System.Windows.Automation.PropertyCondition(
+                [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+                [System.Windows.Automation.ControlType]::ComboBox
+            )
+            $combos = $targetWin.FindAll([System.Windows.Automation.TreeScope]::Descendants, $condCombo)
+            foreach ($cb in $combos) {
+                $cbName = ($cb.Current.Name + " " + $cb.Current.HelpText + " " + $cb.Current.AutomationId).ToLower()
+                if ($cbName -match "type|proto|decodo|http|socks") {
+                    $foundCombo = $cb
+                    break
+                }
+            }
+        } catch {}
+
+        # 1. Fill Proxy Type ComboBox if found
+        if ($null -ne $foundCombo) {
+            try {
+                $foundCombo.SetFocus()
+                Start-Sleep -Milliseconds 40
+                $p = $Type.ToUpper().Trim()
+
+                for ($i = 0; $i -lt 10; $i++) {
+                    [System.Windows.Forms.SendKeys]::SendWait("{UP}")
+                    Start-Sleep -Milliseconds 25
+                }
+                if ($p -like "*SOCKS5*" -or $p -eq "SOCKS" -or $p -like "*SOCKS*") {
+                    [System.Windows.Forms.SendKeys]::SendWait("{DOWN}")
+                    Start-Sleep -Milliseconds 40
+                    [System.Windows.Forms.SendKeys]::SendWait("{DOWN}")
+                    Start-Sleep -Milliseconds 40
+                    [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
+                }
+                elseif ($p -like "*HTTPS*") {
+                    [System.Windows.Forms.SendKeys]::SendWait("{DOWN}")
+                    Start-Sleep -Milliseconds 40
+                    [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
+                }
+                else {
+                    [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
+                }
+                Start-Sleep -Milliseconds 50
+                [System.Windows.Forms.SendKeys]::SendWait("{ESCAPE}")
+                Start-Sleep -Milliseconds 120
+            } catch {}
+        }
+
+        # 2. Fill Host directly
+        $foundHost.SetFocus()
+        Start-Sleep -Milliseconds 30
+        Clear-And-SetText $HostVal
+
+        # 3. Fill Port directly
+        $foundPort.SetFocus()
+        Start-Sleep -Milliseconds 30
+        Clear-And-SetText $PortVal
+
+        # 4. Fill Username directly if identified
+        if ($null -ne $foundUser) {
+            $foundUser.SetFocus()
+            Start-Sleep -Milliseconds 30
+            Clear-And-SetText $UserVal
+        }
+
+        # 5. Fill Password directly if identified
+        if ($null -ne $foundPass) {
+            $foundPass.SetFocus()
+            Start-Sleep -Milliseconds 30
+            Clear-And-SetText $PassVal
+        }
+
+        # 6. Check Proxy Button: click to complete verification if present!
+        try {
+            $condBtn = New-Object System.Windows.Automation.PropertyCondition(
+                [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+                [System.Windows.Automation.ControlType]::Button
+            )
+            $btns = $targetWin.FindAll([System.Windows.Automation.TreeScope]::Descendants, $condBtn)
+            foreach ($btn in $btns) {
+                $btnName = ($btn.Current.Name + " " + $btn.Current.HelpText + " " + $btn.Current.AutomationId).ToLower()
+                if ($btnName -match "check|test proxy") {
+                    $invokePattern = $null
+                    try {
+                        $invokePattern = $btn.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern) -as [System.Windows.Automation.InvokePattern]
+                    } catch {}
+                    if ($null -ne $invokePattern) {
+                        $invokePattern.Invoke()
+                    } else {
+                        $btn.SetFocus()
+                        [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
+                    }
+                    break
+                }
+            }
+        } catch {}
+
+        return $true
+    }
+    catch {
+        return $false
+    }
+}
+
 $b = $Browser.ToLower().Trim()
 $p = $Type.ToUpper().Trim()
 
 # ---------------------------------------------------------------------
-# 1. DOLPHIN{ANTY} / OCTO BROWSER (Single-Line Quick Import Box)
+# ATTEMPT SMART UI AUTOMATION DETECTION FIRST
+# ---------------------------------------------------------------------
+# If 'smart' mode or browser preset is active, try smart field detection first
+if ($b -eq "smart" -or $b -like "*geelark*" -or $b -eq "gologin" -or $b -eq "adspower") {
+    $smartSuccess = Try-SmartUIADetectionAndFill
+    if ($smartSuccess) {
+        exit 0
+    }
+}
+
+# ---------------------------------------------------------------------
+# FALLBACK 1. DOLPHIN{ANTY} / OCTO BROWSER (Single-Line Quick Import Box)
 # ---------------------------------------------------------------------
 if ($b -eq "dolphin" -or $b -like "*dolphin*" -or $b -eq "octo" -or $Mode -eq "single-line" -or $StartField -eq "paste-url") {
     $full = "$HostVal`:$PortVal"
@@ -110,17 +307,14 @@ if ($b -eq "dolphin" -or $b -like "*dolphin*" -or $b -eq "octo" -or $Mode -eq "s
 }
 
 # ---------------------------------------------------------------------
-# 2. GEELARK (TYPE FIRST) - Recommended! Starts in 'Type' dropdown
-# Selects SOCKS5 / HTTP -> Tab into Host -> Port -> User -> Pass -> Check proxy!
+# FALLBACK 2. GEELARK (TYPE FIRST) - Starts in 'Type' dropdown
 # ---------------------------------------------------------------------
-elseif ($b -eq "geelark" -or $b -eq "geelark-type") {
-    # 1. Reset Type dropdown to top (HTTP)
+elseif ($b -eq "geelark" -or $b -eq "geelark-type" -or $b -eq "smart") {
     for ($i = 0; $i -lt 10; $i++) {
         [System.Windows.Forms.SendKeys]::SendWait("{UP}")
         Start-Sleep -Milliseconds 35
     }
 
-    # 2. Select Protocol in GeeLark (HTTP: 0, HTTPS: 1, SOCKS5: 2)
     if ($p -like "*SOCKS5*" -or $p -eq "SOCKS" -or $p -like "*SOCKS*") {
         [System.Windows.Forms.SendKeys]::SendWait("{DOWN}")
         Start-Sleep -Milliseconds 55
@@ -134,7 +328,6 @@ elseif ($b -eq "geelark" -or $b -eq "geelark-type") {
         [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
     }
     else {
-        # HTTP
         [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
     }
 
@@ -142,7 +335,7 @@ elseif ($b -eq "geelark" -or $b -eq "geelark-type") {
     [System.Windows.Forms.SendKeys]::SendWait("{ESCAPE}")
     Start-Sleep -Milliseconds 220
 
-    # Advance to Host box (Tab 1 lands on IP query channel, Tab 2 lands on Host box)
+    # Advance to Host box (Tab 1 -> IP query channel, Tab 2 -> Host box)
     Send-TabKey
     Send-TabKey
 
@@ -153,25 +346,23 @@ elseif ($b -eq "geelark" -or $b -eq "geelark-type") {
     Send-TabKey
     Clear-And-SetText $PortVal
 
-    # Step 3: Username box (Tab 1 lands on Check proxy, Tab 2 lands on Username)
+    # Step 3: Username box (Tab 1 -> Check proxy, Tab 2 -> Username)
     Send-TabKey
     Send-TabKey
     Clear-And-SetText $UserVal
 
-    # Step 4: Password box (Tab 1 lands on Password)
+    # Step 4: Password box
     Send-TabKey
     Clear-And-SetText $PassVal
 
     # Step 5: Complete by triggering "Check proxy" button!
-    # Shift+Tab 1 -> Username, Shift+Tab 2 -> Check proxy button
     Send-ShiftTabKey
     Send-ShiftTabKey
     [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
 }
 
 # ---------------------------------------------------------------------
-# 3. GEELARK (HOST ONLY) - Cursor starts directly in 'Host' box
-# Fills Host -> Port -> User -> Pass -> Check proxy!
+# FALLBACK 3. GEELARK (HOST ONLY) - Cursor starts directly in 'Host' box
 # ---------------------------------------------------------------------
 elseif ($b -eq "geelark-host") {
     # Step 1: In Host box (wipes old host, types new host)
@@ -181,7 +372,7 @@ elseif ($b -eq "geelark-host") {
     Send-TabKey
     Clear-And-SetText $PortVal
 
-    # Step 3: Tab into Username box (Tab 1 lands on Check proxy, Tab 2 lands on Username)
+    # Step 3: Tab into Username box (Tab 1 -> Check proxy, Tab 2 -> Username)
     Send-TabKey
     Send-TabKey
     Clear-And-SetText $UserVal
@@ -197,17 +388,15 @@ elseif ($b -eq "geelark-host") {
 }
 
 # ---------------------------------------------------------------------
-# 4. GOLOGIN (Handles dropdown first if selected, or direct Host box)
+# FALLBACK 4. GOLOGIN (Handles dropdown first if selected, or direct Host box)
 # ---------------------------------------------------------------------
 elseif ($b -eq "gologin") {
     if ($StartField -eq "dropdown") {
-        # Reset GoLogin dropdown to top option (HTTP Proxy)
         for ($i = 0; $i -lt 5; $i++) {
             [System.Windows.Forms.SendKeys]::SendWait("{UP}")
             Start-Sleep -Milliseconds 35
         }
 
-        # Select protocol: HTTP (0) -> Socks 4 (1) -> Socks 5 (2)
         if ($p -like "*SOCKS5*" -or $p -eq "SOCKS" -or $p -like "*SOCKS*") {
             [System.Windows.Forms.SendKeys]::SendWait("{DOWN}")
             Start-Sleep -Milliseconds 55
@@ -228,7 +417,6 @@ elseif ($b -eq "gologin") {
         [System.Windows.Forms.SendKeys]::SendWait("{ESCAPE}")
         Start-Sleep -Milliseconds 220
 
-        # Move into Host box
         Send-TabKey
     }
 
@@ -249,41 +437,27 @@ elseif ($b -eq "gologin") {
 }
 
 # ---------------------------------------------------------------------
-# 5. ADSPOWER (Host -> Tab -> Port -> Tab -> User -> Tab -> Pass)
+# FALLBACK 5. ADSPOWER (Host -> Tab -> Port -> Tab -> User -> Tab -> Pass)
 # ---------------------------------------------------------------------
 elseif ($b -eq "adspower") {
-    # Step 1: Host box
     Clear-And-SetText $HostVal
-
-    # Step 2: Port box
     Send-TabKey
     Clear-And-SetText $PortVal
-
-    # Step 3: User box
     Send-TabKey
     Clear-And-SetText $UserVal
-
-    # Step 4: Password box
     Send-TabKey
     Clear-And-SetText $PassVal
 }
 
 # ---------------------------------------------------------------------
-# 6. UNIVERSAL / ANY BROWSER (Direct Host Box -> Tab Sequence)
+# FALLBACK 6. UNIVERSAL / ANY BROWSER (Direct Host Box -> Tab Sequence)
 # ---------------------------------------------------------------------
 else {
-    # Step 1: Host box
     Clear-And-SetText $HostVal
-
-    # Step 2: Port box
     Send-TabKey
     Clear-And-SetText $PortVal
-
-    # Step 3: Username box
     Send-TabKey
     Clear-And-SetText $UserVal
-
-    # Step 4: Password box
     Send-TabKey
     Clear-And-SetText $PassVal
 }

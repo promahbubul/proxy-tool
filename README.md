@@ -52,7 +52,8 @@ npm start
 ## 🎯 বিভিন্ন ব্রাউজারে ব্যবহারের নিয়ম (Target Browser Presets)
 
 ভাসমান টুলবারে একটি **Browser Selector** দেওয়া আছে:
-- **GeeLark (Type First) [Recommended]:** GeeLark-এর `Type` ড্রপডাউনে (`DECODO` বা যেটাই থাকুক) ক্লিক করে `Alt+F` চাপলে স্বয়ংক্রিয়ভাবে প্রোটোকল (SOCKS5/HTTP) সিলেক্ট হবে, Host, Port, Username, Password ফিল হবে এবং শেষে Check Proxy বাটনে ক্লিক করে ভেরিফিকেশন কমপ্লিট করবে!
+- **✨ Smart Detect (Auto) [Recommended]:** এটি পেজে থাকা সমস্ত ইনপুট বক্স স্ক্যান করে সরাসরি `Host`, `Port`, `Username`, `Password`, এবং `Proxy Type` খুঁজে বের করে নিজে থেকেই সঠিক বক্সে মান বসায়! কার্সার যেখানেই থাকুক, এটি নিখুঁতভাবে ফিল করবে।
+- **GeeLark (Type First):** GeeLark-এর `Type` ড্রপডাউনে (`DECODO` বা যেটাই থাকুক) ক্লিক করে `Alt+F` চাপলে স্বয়ংক্রিয়ভাবে প্রোটোকল (SOCKS5/HTTP) সিলেক্ট হবে, Host, Port, Username, Password ফিল হবে এবং শেষে Check Proxy বাটনে ক্লিক করে ভেরিফিকেশন কমপ্লিট করবে!
 - **GeeLark (Host Box):** GeeLark-এর `Host` বক্সে ক্লিক করে `Alt+F` চাপলে Host, Port, Username, Password ফিল হবে এবং Check Proxy টেস্ট হবে।
 - **GoLogin:** GoLogin-এর Proxy Type ড্রপডাউনে কার্সার রেখে `Alt+F` চাপলে ড্রপডাউন সিলেক্ট করে IP, Port, Username, Password ফিল করে।
 - **AdsPower:** AdsPower-এর Host ফিল্ডে কার্সার রেখে `Alt+F` চাপলে Host, Port, User, Password অটো-ফিল হয়।
